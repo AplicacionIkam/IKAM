@@ -66,8 +66,8 @@ export default function App() {
 
   const handleSignOut = () => {
     Alert.alert(
-      'Cerrar Sesion',
-      '¿Estás seguro que desea cerrar sesion?',
+      'Cerrar Sesión',
+      '¿Estás seguro que desea cerrar tu sesión?',
       [
         { text: 'No', onPress: () => null, style: 'cancel' },
         {
@@ -89,8 +89,8 @@ export default function App() {
 
   const handleDeletAccount = () => {
     Alert.alert(
-      '¿Estás seguro que desea Eliminar su cuenta?',
-      'Esta accion eliminara su cuenta, aunque puede volver a crear una nueva con su correo',
+      '¿Estás seguro que desea eliminar su cuenta?',
+      'Esta acción eliminara su cuenta, aunque puede volver a crear una nueva con su correo',
       [
         { text: 'No', onPress: () => null, style: 'cancel' },
         {
