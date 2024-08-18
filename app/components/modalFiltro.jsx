@@ -22,7 +22,6 @@ const ModalFiltro = ({ modalVisible, setModalVisible, colonia, setColonia }) => 
                     label: doc.data().nombreCol,
                     value: doc.data().nombreCol
                 }));
-                console.log(coloniasArray);
                 setColonias((prevColonias) => [...prevColonias, ...coloniasArray]);
             } catch (error) {
                 console.error(

@@ -10,21 +10,23 @@ import {
   ActivityIndicator,
   Alert
 } from "react-native";
+import ModalTerminosCondiciones from '../../components/modalPoliticas'; // Asegúrate de que la ruta sea correcta
+
 import Icon from "react-native-vector-icons/FontAwesome5";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUserCircle, faShieldAlt, faBell, faLock, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import { faUserCircle, faShieldAlt, faBell, faLock, faSignOutAlt, faGavel, faUserTimes } from "@fortawesome/free-solid-svg-icons";
 import { getUserData, clearUserData } from "../../auth/authService";
 import { useRouter } from 'expo-router';
 import { doc, deleteDoc, collection, query, where, getDocs, getDoc } from 'firebase/firestore';
 import { auth, ikam } from '../../firebase/config-ikam';
 import { deleteUser } from 'firebase/auth';
 
-
 export default function App() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
-  
+  const [modalVisible, setModalVisible] = useState(false);
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -50,10 +52,10 @@ export default function App() {
       }
     };
     fetchUserData();
-  }, [])
+  }, []);
 
   useEffect(() => {
-    library.add(faUserCircle, faShieldAlt, faBell, faLock, faSignOutAlt);
+    library.add(faUserCircle, faShieldAlt, faBell, faLock, faSignOutAlt, faGavel, faUserTimes);
   }, []);
 
   if (loading) {
@@ -73,13 +75,11 @@ export default function App() {
         {
           text: 'Sí', onPress: async () => {
             try {
-              // await signOut(auth);
               await clearUserData();
               router.replace('/WelcomeScreen');
             } catch (error) {
               console.error('Error signing out:', error);
             }
-
           }
         },
       ],
@@ -96,7 +96,6 @@ export default function App() {
         {
           text: 'Sí', onPress: async () => {
             try {
-
               const user = auth.currentUser;
 
               if (user) {
@@ -111,7 +110,7 @@ export default function App() {
                 const querySnapshot = await getDocs(q);
 
                 querySnapshot.forEach(async (doc) => {
-                    await deleteDoc(doc.ref);
+                  await deleteDoc(doc.ref);
                 });
 
                 // Elimina la cuenta de Firebase Authentication
@@ -121,10 +120,9 @@ export default function App() {
                 router.replace('/WelcomeScreen');
               }
             } catch (error) {
-              console.error('Error signing out:', error);
+              console.error('Error deleting account:', error);
               router.replace('/WelcomeScreen');
             }
-
           }
         },
       ],
@@ -150,13 +148,14 @@ export default function App() {
         </View>
       </View>
       <ScrollView style={styles.contenedorOpciones}>
-        {/* <RenderOption icon="user-circle" text="Información Personal" onPress={null} />
-        <RenderOption icon="shield-alt" text="Seguridad" onPress={null} />
-        <RenderOption icon="bell" text="Notificaciones" onPress={null} />
-        <RenderOption icon="lock" text="Privacidad" onPress={null} /> */}
+        <RenderOption icon="gavel" text="Política Privacidad" onPress={() => setModalVisible(true)} />
         <RenderOption icon="sign-out-alt" text="Cerrar Sesión" onPress={handleSignOut} />
         <RenderOption icon="user-times" text="Eliminar Cuenta" onPress={handleDeletAccount} />
       </ScrollView>
+      <ModalTerminosCondiciones
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+      />
     </SafeAreaView>
   );
 }

@@ -343,6 +343,7 @@ const estilos = StyleSheet.create({
     fontSize: 16,
   },
   tarjetaTodasPymes: {
+    
     backgroundColor: "#EFEFEF",
     padding: 15,
     borderRadius: 10,

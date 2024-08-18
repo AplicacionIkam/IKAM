@@ -12,6 +12,54 @@ import {
 
 const { width: viewportWidth } = Dimensions.get("window");
 
+const ItemCategoria = React.memo(
+  ({
+    item,
+    onPress,
+    esSeleccionada,
+    handleImageLoadStart,
+    handleImageLoadEnd,
+    cargandoImagenes,
+  }) => {
+    const imagenUrl =
+      item.imagenCat && typeof item.imagenCat === "string"
+        ? item.imagenCat.trim()
+        : "";
+    const tieneImagen = imagenUrl !== "";
+
+    return (
+      <TouchableOpacity
+        style={[estilos.tarjeta, esSeleccionada && estilos.tarjetaSeleccionada]}
+        onPress={() => onPress(item.id)}
+      >
+        <View style={estilos.imagenContainer}>
+          {cargandoImagenes[item.id] && (
+            <ActivityIndicator
+              size="large"
+              color="#CC0000"
+              style={estilos.cargando}
+            />
+          )}
+          <Image
+            source={
+              tieneImagen
+                ? { uri: imagenUrl }
+                : require("../assets/img/logo.png")
+            }
+            style={estilos.imagenTarjeta}
+            onLoadStart={() => handleImageLoadStart(item.id)}
+            onLoadEnd={() => handleImageLoadEnd(item.id)}
+            onError={() => handleImageLoadEnd(item.id)}
+          />
+        </View>
+        <View style={estilos.detalleTarjeta}>
+          <Text style={estilos.tituloTarjeta}>{item.nombreCat}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+);
+
 const ListaCategorias = ({
   categoriaSeleccionada,
   setCategoriaSeleccionada,
@@ -31,66 +79,25 @@ const ListaCategorias = ({
     setCargandoImagenes((prev) => ({ ...prev, [id]: false }));
   };
 
-  const renderizarItemCategoria = ({ item }) => {
-    const imagenUrl =
-      item.imagenCat && typeof item.imagenCat === "string"
-        ? item.imagenCat.trim()
-        : "";
-    const tieneImagen = imagenUrl !== "";
-
-    return (
-      <TouchableOpacity
-        style={[
-          estilos.tarjeta,
-          item.id === categoriaSeleccionada && estilos.tarjetaSeleccionada,
-        ]}
-        onPress={() => manejarCategoriaPresionada(item.id)}
-      >
-        <View style={estilos.imagenContainer}>
-          {cargandoImagenes[item.id] && (
-            <ActivityIndicator
-              size="large"
-              color="#CC0000"
-              style={estilos.cargando}
-            />
-          )}
-          <Image
-            source={
-              tieneImagen
-                ? { uri: imagenUrl }
-                : require("../assets/img/logo.png")
-            } // Ruta de la imagen por defecto
-            style={estilos.imagenTarjeta}
-            onLoadStart={() => handleImageLoadStart(item.id)}
-            onLoadEnd={() => handleImageLoadEnd(item.id)}
-            onError={() => handleImageLoadEnd(item.id)}
-          />
-        </View>
-        <View style={estilos.detalleTarjeta}>
-          <Text style={estilos.tituloTarjeta}>{item.nombreCat}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  };
-
-  // Añadir la opción "Mostrar Todas las Pymes" al principio de la lista
-  const categoriasConTodasPymes = [
-    {
-      id: "all",
-      nombreCat: "Todas las Pymes",
-      imagenCat: null, // Puedes usar una imagen predeterminada si lo deseas
-    },
-    ...categorias,
-  ];
+  const renderizarItemCategoria = ({ item }) => (
+    <ItemCategoria
+      item={item}
+      onPress={manejarCategoriaPresionada}
+      esSeleccionada={item.id === categoriaSeleccionada}
+      handleImageLoadStart={handleImageLoadStart}
+      handleImageLoadEnd={handleImageLoadEnd}
+      cargandoImagenes={cargandoImagenes}
+    />
+  );
 
   return (
     <View style={estilos.contenedor}>
       <FlatList
-        data={categoriasConTodasPymes}
+        data={categorias}
         renderItem={renderizarItemCategoria}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         numColumns={2}
-        columnWrapperStyle={estilos.fila} // Estilos para la fila de columnas
+        columnWrapperStyle={estilos.fila}
       />
     </View>
   );

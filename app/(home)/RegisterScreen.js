@@ -1,8 +1,6 @@
-import { AntDesign, Entypo } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-
 import {
   StyleSheet,
   SafeAreaView,
@@ -14,8 +12,11 @@ import {
   ScrollView,
   Alert,
   Dimensions,
-  ActivityIndicator
+  ActivityIndicator,
+  Pressable,
+  StatusBar
 } from 'react-native';
+import ModalTerminosCondiciones from '../components/modalPoliticas'; // Asegúrate de que la ruta sea correcta
 
 const { width, height } = Dimensions.get('window');
 
@@ -34,6 +35,8 @@ const RegisterScreen = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const router = useRouter();
 
@@ -61,22 +64,38 @@ const RegisterScreen = () => {
       return;
     }
 
+    if (!acceptedTerms) {
+      Alert.alert('Error', 'Debes aceptar los términos y condiciones');
+      return;
+    }
+
     setLoading(true);
     try {
-      await registerUser(email, password, name, last_name);    
-      router.push('(tabs)');                
+      await registerUser(email, password, name, last_name);
+      router.push('(tabs)');
     } catch (error) {
-      if(error == "Error: Firebase: Error (auth/email-already-in-use)."){
+      if (error === "Error: Firebase: Error (auth/email-already-in-use).") {
         console.error("Error al registrar el usuario:", error);
-        Alert.alert("Usuario ya registrado", "Ikam Multitiendas: El usuario que intenta registrar ya existe.");        
-      }else{
+        Alert.alert("Usuario ya registrado", "Ikam Multitiendas: El usuario que intenta registrar ya existe.");
+      } else {
         console.error("Error al registrar el usuario:", error);
-        Alert.alert("Error", error.message);                
+        Alert.alert("Error", error.message);
       }
     } finally {
       setLoading(false);
     }
   };
+
+  function MyCheckbox() {
+    const [checked, setChecked] = useState(false);
+    return (
+      <Pressable
+        style={[styles.checkboxBase, checked && styles.checkboxChecked]}
+        onPress={() => setChecked(!checked)}>
+        {checked && <FontAwesome5 name="check" size={15} color="white" />}
+      </Pressable>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -178,7 +197,14 @@ const RegisterScreen = () => {
                   }}
                 />
               </View>
-              {/* <Text style={styles.formLink}>Registrarse con número telefónico</Text> */}
+              <View style={styles.appContainer}>
+                <View style={styles.checkboxContainer}>
+                  <MyCheckbox />
+                  <TouchableOpacity onPress={() => setModalVisible(true)}>
+                    <Text style={styles.checkboxLabel}>{`Aceptar términos y condiciones`}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
               <View style={styles.formAction}>
                 <TouchableOpacity onPress={handleRegister}>
                   <View style={styles.btnContain}>
@@ -189,28 +215,18 @@ const RegisterScreen = () => {
                 </TouchableOpacity>
               </View>
 
-              {/* <Text style={styles.subtitle2}>O también</Text>
-
-            <View style={styles.signInButtons}>
-              <TouchableOpacity style={styles.signInBtn}>
-                <Entypo name='facebook-with-circle' color='#5882FA' size={40} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.signInBtn}>
-                <AntDesign name='google' color='#F78181' size={40} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.signInBtn}>
-                <Entypo name='circle' size={40} />
-              </TouchableOpacity>
-            </View> */}
-
               <Text style={styles.label}>
                 ¿Ya tienes una cuenta? <Link href={'LoginScreen'} style={styles.labelLink}>Inicia en IKAM</Link>
               </Text>
             </View>
           }
-
         </ScrollView>
       </View>
+
+      <ModalTerminosCondiciones
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+      />
     </SafeAreaView>
   );
 };
@@ -237,18 +253,6 @@ const styles = StyleSheet.create({
     color: '#222C57',
     marginBottom: 6,
   },
-  subtitle: {
-    fontSize: 10,
-    fontWeight: '500',
-    color: '#929292',
-  },
-  subtitle2: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#1D2A32',
-    textAlign: 'center',
-    marginBottom: 0,
-  },
   header: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -271,20 +275,6 @@ const styles = StyleSheet.create({
   formAction: {
     marginTop: 10,
     marginBottom: 16,
-  },
-  formLink: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#222C57',
-    textAlign: 'right',
-    marginBottom: 30,
-  },
-  formFooter: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#222',
-    textAlign: 'center',
-    letterSpacing: 0.15,
   },
   input: {
     marginBottom: 16,
@@ -324,25 +314,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#fff',
   },
-  signInButtons: {
-    flexDirection: "row",
-    justifyContent: "space-evenly",
-    marginBottom: 0,
-    width: "100%",
-  },
-  signInBtn: {
-    flexDirection: "row",
-    width: "40%",
-    borderWidth: 0,
-    padding: 25,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  signInBtnText: {
-    marginLeft: 10,
-    fontSize: 13,
-  },
   eyeIcon: {
     position: 'absolute',
     right: 10,
@@ -353,6 +324,32 @@ const styles = StyleSheet.create({
   inputContainer: {
     position: 'relative',
     marginBottom: 15,
+  },
+  checkboxBase: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: 'blue',
+    backgroundColor: 'transparent',
+  },
+  checkboxChecked: {
+    backgroundColor: 'blue',
+  },
+  appContainer: {
+    flex: 1,
+    marginBottom: 25
+  },
+  checkboxContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxLabel: {
+    marginLeft: 8,
+    fontSize: 15,
+    color: 'blue',
   },
 });
 

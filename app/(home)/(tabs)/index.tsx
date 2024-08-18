@@ -228,6 +228,8 @@ const App = () => {
           <BarraBusquedaCategoria
             busquedaCategoria={busquedaCategoria}
             setbusquedaCategoria={setBusquedaCategoria}
+            colonia={colonia}
+            setColonia={setColonia}
           />
           <ListaCategorias
             setCategoriaSeleccionada={setCategoriaSeleccionada}
