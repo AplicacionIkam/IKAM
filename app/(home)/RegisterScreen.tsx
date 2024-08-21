@@ -44,7 +44,7 @@ const RegisterScreen = () => {
     const { email, password, confirmPassword, name, last_name } = form;
 
     // Validaciones
-    if (!name || !last_name || !email || !password || !confirmPassword) {
+    if (!name || !last_name || !email || !password) {
       Alert.alert('Error', 'Todos los campos son requeridos');
       return;
     }
@@ -54,9 +54,14 @@ const RegisterScreen = () => {
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
-      return;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < 8 || !hasUpperCase || !hasLowerCase || !hasSpecialChar) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 8 caracteres, al menos una letra mayúscula, minúsculas y un carácter especial: @#$%^&*(),.?":{}|<>');
+      // Alert.alert('Error', 'La contraseña debe contener al menos una letra mayúscula, una letra minúscula y un carácter especial');
+      return false;
     }
 
     if (password !== confirmPassword) {
@@ -72,10 +77,18 @@ const RegisterScreen = () => {
     setLoading(true);
     try {
       await registerUser(email, password, name, last_name);
+      setForm({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        name: '',
+        last_name: '',
+      });
       router.push('(tabs)');
     } catch (error) {
-      if (error === "Error: Firebase: Error (auth/email-already-in-use).") {
-        console.error("Error al registrar el usuario:", error);
+      // console.log("Error como string:", error.toString());
+      if (error.message.includes('auth/email-already-in-use')) {
+        // console.error("El usuario ya existe en nuestra base:", error);
         Alert.alert("Usuario ya registrado", "Ikam Multitiendas: El usuario que intenta registrar ya existe.");
       } else {
         console.error("Error al registrar el usuario:", error);
@@ -87,20 +100,19 @@ const RegisterScreen = () => {
   };
 
   function MyCheckbox() {
-    const [checked, setChecked] = useState(false);
     return (
       <Pressable
-        style={[styles.checkboxBase, checked && styles.checkboxChecked]}
-        onPress={() => setChecked(!checked)}>
-        {checked && <FontAwesome5 name="check" size={15} color="white" />}
+        style={[styles.checkboxBase, acceptedTerms && styles.checkboxChecked]}
+        onPress={() => setAcceptedTerms(!acceptedTerms)}>
+        {acceptedTerms && <FontAwesome5 name="check" size={15} color="white" />}
       </Pressable>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <View style={styles.container}>
-        <ScrollView>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.container}>
           <Image source={Logo} style={styles.logo} />
           <View style={styles.header}>
             <Text style={styles.title}>Regístrate</Text>
@@ -220,67 +232,48 @@ const RegisterScreen = () => {
               </Text>
             </View>
           }
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
 
       <ModalTerminosCondiciones
         modalVisible={modalVisible}
         setModalVisible={setModalVisible}
       />
-    </SafeAreaView>
+    </SafeAreaView >
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    paddingVertical: 0,
-    paddingHorizontal: 20,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollViewContent: {
     flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  label: {
-    textAlign: 'center',
-    fontSize: 20
+  container: {
+    width: '90%',
+    maxWidth: 400,
+    padding: 20,
+    alignItems: 'center',
   },
-  labelLink: {
-    textAlign: 'center',
-    color: 'blue'
+  logo: {
+    width: width * 0.6,
+    height: height * 0.2,
+    marginBottom: 30,
   },
   title: {
     fontSize: 30,
     fontWeight: '700',
     color: '#222C57',
-    marginBottom: 6,
-  },
-  header: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 30,
-  },
-  logo: {
-    alignSelf: 'center',
-    width: width * 0.8,
-    height: height * 0.2,
-    marginBottom: -25,
-    marginTop: 50
+    marginBottom: 20,
   },
   form: {
-    marginBottom: 24,
-    paddingHorizontal: 24,
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-  },
-  formAction: {
-    marginTop: 10,
-    marginBottom: 16,
-  },
-  input: {
-    marginBottom: 16,
+    width: '100%',
   },
   inputControl: {
-    marginTop: 15,
     height: 50,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
@@ -290,65 +283,69 @@ const styles = StyleSheet.create({
     color: '#222',
     borderWidth: 1,
     borderColor: '#222C57',
-    borderStyle: 'solid',
+    marginBottom: 15,
   },
-  btnContain: {
-    alignItems: 'center',
-    marginTop: 1,
-  },
-  btn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 15,
-    borderWidth: 1,
-    borderRadius: 30,
-    backgroundColor: '#C61919',
-    borderColor: '#222C57',
-    width: width * 0.8,
-    marginBottom: 15
-  },
-  btnText: {
-    fontSize: 15,
-    lineHeight: 15,
-    fontWeight: '600',
-    color: '#fff',
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 15,
   },
   eyeIcon: {
     position: 'absolute',
     right: 10,
-    top: 25,
-    height: 30,
-    justifyContent: 'center',
+    top: 10,
   },
-  inputContainer: {
-    position: 'relative',
-    marginBottom: 15,
-  },
-  checkboxBase: {
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 4,
-    borderWidth: 2,
-    borderColor: 'blue',
-    backgroundColor: 'transparent',
-  },
-  checkboxChecked: {
-    backgroundColor: 'blue',
-  },
-  appContainer: {
-    flex: 1,
-    marginBottom: 25
+  error: {
+    textAlign: 'center',
+    color: '#C61919',
+    marginVertical: 10,
   },
   checkboxContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginVertical: 20,
+  },
+  checkboxBase: {
+    width: 25,
+    height: 25,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#222C57',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#222C57',
   },
   checkboxLabel: {
-    marginLeft: 8,
     fontSize: 15,
+    fontWeight: '400',
+    color: 'blue',
+    marginLeft: 10,
+  },
+  btnContain: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  btn: {
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderWidth: 1,
+    borderRadius: 30,
+    backgroundColor: '#C61919',
+    borderColor: '#222C57',
+    width: '100%',
+    alignItems: 'center',
+  },
+  btnText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  label: {
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  labelLink: {
     color: 'blue',
   },
 });

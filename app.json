@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ikam-Multitiendas",
     "slug": "Ikam-Multitiendas",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",

@@ -161,7 +161,7 @@ const estilos = StyleSheet.create({
     },
     modalContent: {
         fontSize: 16,
-        textAlign: 'justify',
+        textAlign: 'auto',
         marginBottom: 20,
     },
     scrollView: {

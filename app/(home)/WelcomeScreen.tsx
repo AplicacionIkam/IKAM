@@ -109,8 +109,8 @@ const estilos = StyleSheet.create({
     paddingVertical: 15,
   },
   imagen: {
-    width: width * 0.9,
-    height: width * 0.9,
+    width: width * 0.6,
+    height: width * 0.6,
     resizeMode: "contain",
   },
   contenedorBtn: {
