@@ -5,7 +5,6 @@ import { auth, ikam } from '../firebase/config-ikam';
 import Carousel from "pinar";
 import {
     ScrollView,
-    SafeAreaView,
     View,
     Image,
     StyleSheet,
@@ -16,9 +15,9 @@ import {
     Modal,
     StatusBar
 } from "react-native";
+import { Video } from 'expo-av';
 
 const { width: viewportWidth } = Dimensions.get("window");
-
 
 export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vistaDetalles, setVistaDetalles }) => {
     const [pyme, setPyme] = useState(null);
@@ -34,22 +33,19 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
 
     useEffect(() => {
         const user = auth.currentUser;
-        if (!user) return; // Asegúrate de que el usuario esté autenticado
+        if (!user) return;
 
         const likesCollection = collection(ikam, 'likes');
         const q = query(likesCollection, where('userId', '==', user.uid), where('pymeId', '==', pymeId));
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
             if (!querySnapshot.empty) {
-                // Si hay al menos un documento, la pyme está en los favoritos
                 setIsFavorite(true);
             } else {
-                // No se encontró el documento, la pyme no está en los favoritos
                 setIsFavorite(false);
             }
         });
 
-        // Cleanup: Desuscribirse cuando el componente se desmonte
         return () => unsubscribe();
     }, [pymeId]);
 
@@ -92,7 +88,6 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
         }
     };
 
-    // Método genérico para abrir cualquier URL
     const abrirEnNavegador = (url) => {
         if (url) {
             Linking.openURL(url).catch((err) =>
@@ -108,7 +103,7 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
     };
 
     const abrirWhatsApp = (numero) => {
-        const mensaje = "Hola me comunico desde Ikam Multitiendas"
+        const mensaje = "Hola me comunico desde Ikam Multitiendas";
         const url = `https://wa.me/${numero}?text=${mensaje}`;
         abrirEnNavegador(url);
     };
@@ -118,19 +113,28 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
             animationType="fade"
             visible={vistaDetalles}
             onRequestClose={() => {
-                setVistaDetalles(!vistaDetalles)
+                setVistaDetalles(!vistaDetalles);
                 StatusBar.setHidden(false);
-                setPyme()
+                setPyme(null);
             }}
             transparent={false}
         >
             <StatusBar hidden={true} />
             <View style={estilos.areaSegura}>
-
                 {pyme ? (
                     <>
                         <View style={estilos.imagenContenedor}>
                             <Carousel>
+                                <View style={estilos.videoContainer}>
+                                    <Video
+                                        source={{ uri: pyme.video }} // URL del video
+                                        style={estilos.video}
+                                        useNativeControls
+                                        resizeMode="contain"
+                                        shouldPlay // Reproduce automáticamente
+                                        isLooping // Repite el video continuamente
+                                    />
+                                </View>
                                 <Image
                                     source={{ uri: pyme.imagen1 }}
                                     style={estilos.imagenDetalle}
@@ -156,9 +160,9 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
                                 <TouchableOpacity
                                     style={estilos.botonIzquierda}
                                     onPress={() => {
-                                        setVistaDetalles(!vistaDetalles)
+                                        setVistaDetalles(!vistaDetalles);
                                         StatusBar.setHidden(false);
-                                        setPyme()
+                                        setPyme(null);
                                     }}
                                 >
                                     <FontAwesome5 name="arrow-left" size={25} color="#000" />
@@ -168,7 +172,7 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
                                     <TouchableOpacity
                                         style={estilos.botonDerecha}
                                         onPress={() => {
-                                            removeLike(pymeId)
+                                            removeLike(pymeId);
                                         }}
                                     >
                                         <FontAwesome5 name="heart" size={25} color="#C61919" />
@@ -177,7 +181,7 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
                                     <TouchableOpacity
                                         style={estilos.botonDerecha}
                                         onPress={() => {
-                                            addLike(pymeId)
+                                            addLike(pymeId);
                                         }}
                                     >
                                         <FontAwesome5 name="heart" size={25} color="#000" />
@@ -185,14 +189,13 @@ export default VistaDetallesPyme = ({ pymeId, volver, obtenerDetallesPyme, vista
                                 }
                             </View>
                         </View>
-                        <ScrollView >
+                        <ScrollView>
                             <View style={estilos.detalleContenedor}>
                                 <Text style={estilos.tituloDetalle}>{pyme.nombre_pyme}</Text>
                                 <Text style={estilos.categoriaDetalle}>
                                     {pyme.nombreSubcate ? pyme.nombreSubcate : "Sin categoría"}
                                 </Text>
                                 <Text style={estilos.descripcionTitulo}>
-                                    {/* {pyme.descripcion} */}
                                     {pyme.descripcion}
                                 </Text>
                                 <TouchableOpacity onPress={() => abrirEnNavegador(pyme.url_maps)}>
@@ -297,9 +300,7 @@ const estilos = StyleSheet.create({
         backgroundColor: "#F0F0F0",
         marginTop: 0
     },
-    // Detalles de PyME
     detalleContenedor: {
-        // flex: 1,
         height: "auto",
         padding: 20,
         backgroundColor: "#FFFFFF",
@@ -309,6 +310,15 @@ const estilos = StyleSheet.create({
         width: "100%",
         height: "40%",
         resizeMode: "stretch",
+    },
+    videoContainer: {
+        width: "100%",
+        height: "100%",
+        backgroundColor: "rgba(0,0,0,.1)",
+    },
+    video: {
+        width: '100%',
+        height: '100%',
     },
     imagenDetalle: {
         width: "100%",
@@ -396,5 +406,4 @@ const estilos = StyleSheet.create({
     icono: {
         marginHorizontal: 10,
     },
-
 });
